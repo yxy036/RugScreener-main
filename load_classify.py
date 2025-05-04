@@ -21,6 +21,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import average_precision_score, roc_auc_score
 from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import recall_score
 from sklearn.metrics import balanced_accuracy_score
 from imblearn.over_sampling import RandomOverSampler, SMOTE
 from imblearn.under_sampling import RandomUnderSampler
@@ -71,38 +72,89 @@ for datas, labels, test_datas, test_labels, test_new_datas, test_new_labels in d
     #ada.fit(datas, labels.ravel())
     #predict_y = ada.predict(test_datas)
     #predict_new_y = ada.predict(test_new_datas)
+    #predict_y_prob = ada.predict_proba(test_datas)
+    #predict_y_prob = predict_y_prob[:, 1]
+    #predict_new_y_prob = ada.predict_proba(test_new_datas)
+    #predict_new_y_prob = predict_new_y_prob[:, 1]
     #knn = KNeighborsClassifier()
     #knn.fit(datas, labels.ravel())
     #predict_y = knn.predict(test_datas)
     #predict_new_y = knn.predict(test_new_datas)
+    #predict_y_prob = knn.predict_proba(test_datas)
+    #predict_y_prob = predict_y_prob[:, 1]
+    #predict_new_y_prob = knn.predict_proba(test_new_datas)
+    #predict_new_y_prob = predict_new_y_prob[:, 1]
     # 支持向量机模型
     svc = SVC()
     svc.fit(datas, labels.ravel())
     predict_y = svc.predict(test_datas)
     predict_new_y = svc.predict(test_new_datas)
+    predict_y_prob = svc.predict_proba(test_datas)
+    predict_y_prob = predict_y_prob[:, 1]
+    predict_new_y_prob = svc.predict_proba(test_new_datas)
+    predict_new_y_prob = predict_new_y_prob[:, 1]
     # 决策树模型
     #dtc = DecisionTreeClassifier()
     #dtc.fit(datas, labels.ravel())
     #predict_y = dtc.predict(test_datas)
     #predict_new_y = dtc.predict(test_new_datas)
+    #predict_y_prob = dtc.predict_proba(test_datas)
+    #predict_y_prob = predict_y_prob[:, 1]
+    #predict_new_y_prob = dtc.predict_proba(test_new_datas)
+    #predict_new_y_prob = predict_new_y_prob[:, 1]
     #gbdt = GradientBoostingClassifier()
     #gbdt.fit(datas, labels.ravel())
     #predict_y = gbdt.predict(test_datas)
     #predict_new_y = gbdt.predict(test_new_datas)
-    log_content.append("test_y:{}\n".format(test_labels))
-    log_content.append("predict_y:{}\n".format(predict_y))
+    #predict_y_prob = gbdt.predict_proba(test_datas)
+    #predict_y_prob = predict_y_prob[:, 1]
+    #predict_new_y_prob = gbdt.predict_proba(test_new_datas)
+    #predict_new_y_prob = predict_new_y_prob[:, 1]
+    fp_count_test = 0
+    tp_count_test = 0
+    tn_count_test = 0
+    fn_count_test = 0
+    for i in range(len(test_datas)):
+        if predict_y[i] == 1 and test_labels[i] == 1:
+            tp_count_test += 1
+        if predict_y[i] == 1 and test_labels[i] == 0:
+            fp_count_test += 1
+        if predict_y[i] == 0 and test_labels[i] == 1:
+            fn_count_test += 1
+        if predict_y[i] == 0 and test_labels[i] == 0:
+            tn_count_test += 1
+    FPR_test = fp_count_test / (fp_count_test + tn_count_test)
+    FNR_test = fn_count_test / (tp_count_test + fn_count_test)
+    fp_count_test_new = 0
+    tp_count_test_new = 0
+    tn_count_test_new = 0
+    fn_count_test_new = 0
+    for i in range(len(test_new_datas)):
+        if predict_new_y[i] == 1 and test_new_labels[i] == 1:
+            tp_count_test_new += 1
+        if predict_new_y[i] == 1 and test_new_labels[i] == 0:
+            fp_count_test_new += 1
+        if predict_new_y[i] == 0 and test_new_labels[i] == 1:
+            fn_count_test_new += 1
+        if predict_new_y[i] == 0 and test_new_labels[i] == 0:
+            tn_count_test_new += 1
+    FPR_test_new = fp_count_test_new / (fp_count_test_new + tn_count_test_new)
+    FNR_test_new = fn_count_test_new / (tp_count_test_new + fn_count_test_new)
+    #log_content.append("test_y:{}\n".format(test_labels))
+    #log_content.append("predict_y:{}\n".format(predict_y))
+    log_content.append("----------predict----------\n")
     log_content.append(
-        "accuracy_score:{:.3f}\n balanced_accuracy:{:.3f}\n average_precision:{:.3f}\n f1_score:{:.3f}\n auc:{:.3f}\n".format(
-            accuracy_score(test_labels, predict_y), balanced_accuracy_score(test_labels, predict_y),
-            average_precision_score(test_labels, predict_y), f1_score(test_labels, predict_y),roc_auc_score(test_labels, predict_y)
+        "balanced_accuracy:{:.3f}\n f1_score:{:.3f}\n average_precision:{:.3f}\n auc:{:.3f}\n recall:{:.3f}\n FPR:{:.3f}\n FNR:{:.3f}\n".format(
+            balanced_accuracy_score(test_labels, predict_y), f1_score(test_labels, predict_y), average_precision_score(test_labels, predict_y),
+            roc_auc_score(test_labels, predict_y_prob), recall_score(test_labels, predict_y), FPR_test, FNR_test
         ))
-    log_content.append("test_new_y:{}\n".format(test_new_labels))
-    log_content.append("predict_new_y:{}\n".format(predict_new_y))
+    #log_content.append("test_new_y:{}\n".format(test_new_labels))
+    #log_content.append("predict_new_y:{}\n".format(predict_new_y))
+    log_content.append("--------predict_new--------\n")
     log_content.append(
-        "accuracy_score:{:.3f}\n balanced_accuracy:{:.3f}\n average_precision:{:.3f}\n f1_score:{:.3f}\n auc:{:.3f}\n".format(
-            accuracy_score(test_new_labels, predict_new_y), balanced_accuracy_score(test_new_labels, predict_new_y),
-            average_precision_score(test_new_labels, predict_new_y), f1_score(test_new_labels, predict_new_y),
-            roc_auc_score(test_new_labels, predict_new_y)
+        "balanced_accuracy:{:.3f}\n f1_score:{:.3f}\n average_precision:{:.3f}\n auc:{:.3f}\n recall:{:.3f}\n FPR:{:.3f}\n FNR:{:.3f}\n".format(
+            balanced_accuracy_score(test_new_labels, predict_new_y), f1_score(test_new_labels, predict_new_y), average_precision_score(test_new_labels, predict_new_y),
+            roc_auc_score(test_new_labels, predict_new_y_prob), recall_score(test_new_labels, predict_new_y), FPR_test_new, FNR_test_new
         ))
 f.writelines(log_content)
 print(log_content)
